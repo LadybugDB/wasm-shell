@@ -6,3 +6,4 @@ minimumReleaseAgeExclude:
   - '@ladybugdb/wasm-core@0.17.1'
   - '@ladybugdb/wasm-core@0.18.0'
   - '@ladybugdb/wasm-core@0.20.4'
+  - '@ladybugdb/wasm-core@0.22.0'
