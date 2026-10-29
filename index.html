@@ -3,26 +3,97 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ladybug Shell Demo</title>
+  <title>Ladybug Shell</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    try {
+      var t = localStorage.getItem('ladybug-shell-theme');
+      if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+    } catch (e) { /* private mode: fall back to light */ }
+  </script>
   <style>
+    :root {
+      --paper: #fafaf9;
+      --ink: #1c1917;
+      --muted: #78716c;
+      --faint: #a8a29e;
+      --line: #e7e5e4;
+      --code-bg: #f4f2ed;
+      --bar-bg: #f5f5f4;
+      --kbd-bg: #e7e5e4;
+      --kbd-ink: #44403c;
+      --accent: #b91c1c;
+      --accent-soft: rgb(185 28 28 / 0.08);
+      --accent-line: rgb(185 28 28 / 0.35);
+      --ok-bg: #dcfce7;
+      --ok-ink: #166534;
+      --warn-bg: #fef3c7;
+      --warn-ink: #92400e;
+      --err-bg: #fee2e2;
+      --err-ink: #991b1b;
+      --out-err: #b91c1c;
+      --out-ok: #207a31;
+      --out-info: #0064b5;
+      --th-bg: #f4f2ed;
+      --field-bg: #ffffff;
+      --field-line: #d6d3d1;
+      --btn-ink: #57534e;
+    }
+    html.dark {
+      --paper: #0c0a09;
+      --ink: #e7e5e4;
+      --muted: #a8a29e;
+      --faint: #78716c;
+      --line: #292524;
+      --code-bg: #1c1917;
+      --bar-bg: #1c1917;
+      --kbd-bg: #292524;
+      --kbd-ink: #d6d3d1;
+      --accent: #f87171;
+      --accent-soft: rgb(248 113 113 / 0.08);
+      --accent-line: rgb(248 113 113 / 0.4);
+      --ok-bg: rgb(34 197 94 / 0.15);
+      --ok-ink: #4ade80;
+      --warn-bg: rgb(251 191 36 / 0.12);
+      --warn-ink: #fcd34d;
+      --err-bg: rgb(239 68 68 / 0.15);
+      --err-ink: #f87171;
+      --out-err: #f87171;
+      --out-ok: #93d96d;
+      --out-info: #5dc5ff;
+      --th-bg: #1c1917;
+      --field-bg: #0c0a09;
+      --field-line: #44403c;
+      --btn-ink: #a8a29e;
+    }
     * {
       box-sizing: border-box;
     }
     body {
       margin: 0;
       padding: 0;
-      background: #1e1e1e;
-      color: #d4d4d4;
-      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Droid Sans Mono', 'Source Code Pro', monospace;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, 'BlinkMacSystemFont', sans-serif;
       font-size: 14px;
       height: 100vh;
       display: flex;
       flex-direction: column;
+      transition: background 0.2s, color 0.2s;
+    }
+    .mono, .terminal, #command-input, .open-form input {
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    a {
+      color: var(--accent);
     }
     .header {
-      background: #252526;
-      padding: 12px 16px;
-      border-bottom: 1px solid #3c3c3c;
+      padding: 0 20px;
+      height: 64px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--line);
       display: flex;
       align-items: center;
       gap: 12px;
@@ -30,89 +101,125 @@
     .header-spacer {
       flex: 1;
     }
-    .header h1 {
-      margin: 0;
-      font-size: 16px;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--ink);
+    }
+    .brand-name {
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
       font-weight: 600;
-      color: #569cd6;
+      font-size: 15px;
+      letter-spacing: -0.01em;
     }
     .status {
-      font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 4px;
-      background: #3c3c3c;
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      white-space: nowrap;
     }
     .status.loading {
-      background: #dcdcaa;
-      color: #1e1e1e;
+      background: var(--warn-bg);
+      border-color: transparent;
+      color: var(--warn-ink);
     }
     .status.ready {
-      background: #4ec9b0;
-      color: #1e1e1e;
+      background: var(--ok-bg);
+      border-color: transparent;
+      color: var(--ok-ink);
     }
     .status.error {
-      background: #f14c4c;
-      color: #fff;
+      background: var(--err-bg);
+      border-color: transparent;
+      color: var(--err-ink);
     }
     .package-version {
-      color: #9cdcfe;
-      font-size: 12px;
+      color: var(--faint);
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
       white-space: nowrap;
     }
-    .destructive-button {
-      background: #8b1e1e;
-      border: 1px solid #f14c4c;
-      border-radius: 4px;
-      color: #fff;
+    .header-link {
+      font-size: 13px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .header-link:hover {
+      text-decoration: underline;
+    }
+    .icon-button {
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      color: var(--muted);
       cursor: pointer;
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 5px 10px;
-      white-space: nowrap;
+      font-size: 15px;
+      padding: 4px 8px;
+      line-height: 1;
     }
-    .destructive-button:hover {
-      background: #a62a2a;
-    }
-    .destructive-button:focus-visible {
-      outline: 2px solid #ff8a8a;
-      outline-offset: 2px;
-    }
-    .destructive-button:disabled {
-      background: #4a2a2a;
-      border-color: #6a3a3a;
-      color: #b8a0a0;
-      cursor: not-allowed;
+    .icon-button:hover {
+      color: var(--accent);
     }
     .toolbar-button {
-      background: #2d2d2d;
-      border: 1px solid #569cd6;
-      border-radius: 4px;
-      color: #d4d4d4;
+      background: transparent;
+      border: 1px solid var(--field-line);
+      border-radius: 6px;
+      color: var(--btn-ink);
       cursor: pointer;
       font-family: inherit;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 600;
       padding: 5px 10px;
       white-space: nowrap;
     }
     .toolbar-button:hover {
-      background: #373737;
+      border-color: var(--accent);
+      color: var(--accent);
     }
     .toolbar-button:focus-visible {
-      outline: 2px solid #9cdcfe;
+      outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
     .toolbar-button:disabled {
-      border-color: #4a4a4a;
-      color: #777;
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .destructive-button {
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-line);
+      border-radius: 6px;
+      color: var(--accent);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 10px;
+      white-space: nowrap;
+    }
+    .destructive-button:hover {
+      filter: brightness(0.96);
+    }
+    html.dark .destructive-button:hover {
+      filter: brightness(1.25);
+    }
+    .destructive-button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .destructive-button:disabled {
+      opacity: 0.45;
       cursor: not-allowed;
     }
     .open-dialog {
-      background: #252526;
-      border: 1px solid #3c3c3c;
-      border-radius: 6px;
-      color: #d4d4d4;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
       font-family: inherit;
       max-width: min(720px, calc(100vw - 32px));
       padding: 0;
@@ -128,29 +235,28 @@
       padding: 16px;
     }
     .open-form h2 {
-      color: #569cd6;
+      color: var(--ink);
       font-size: 14px;
       margin: 0;
     }
     .open-form label {
-      color: #9cdcfe;
+      color: var(--muted);
       display: flex;
       flex-direction: column;
       gap: 6px;
       font-size: 12px;
     }
     .open-form input {
-      background: #1e1e1e;
-      border: 1px solid #3c3c3c;
-      border-radius: 4px;
-      color: #d4d4d4;
-      font-family: inherit;
+      background: var(--field-bg);
+      border: 1px solid var(--field-line);
+      border-radius: 6px;
+      color: var(--ink);
       font-size: 13px;
       padding: 8px 10px;
       width: 100%;
     }
     .open-form input:focus {
-      border-color: #569cd6;
+      border-color: var(--accent);
       outline: none;
     }
     .open-actions {
@@ -161,7 +267,9 @@
     .terminal {
       flex: 1;
       overflow: auto;
-      padding: 16px;
+      padding: 16px 20px;
+      font-size: 13px;
+      line-height: 1.7;
     }
     .output-line {
       margin: 4px 0;
@@ -169,92 +277,114 @@
       word-break: break-word;
     }
     .output-line.error {
-      color: #f14c4c;
+      color: var(--out-err);
     }
     .output-line.success {
-      color: #4ec9b0;
+      color: var(--out-ok);
     }
     .output-line.info {
-      color: #9cdcfe;
+      color: var(--out-info);
     }
     .output-line.result {
-      color: #d4d4d4;
+      color: var(--ink);
     }
     .output-line table {
       border-collapse: collapse;
       margin: 8px 0;
     }
     .output-line td, .output-line th {
-      border: 1px solid #3c3c3c;
+      border: 1px solid var(--line);
       padding: 4px 8px;
     }
     .output-line th {
-      background: #2d2d2d;
+      background: var(--th-bg);
     }
     .input-area {
-      background: #252526;
-      padding: 12px 16px;
-      border-top: 1px solid #3c3c3c;
+      background: var(--bar-bg);
+      padding: 12px 20px;
+      border-top: 1px solid var(--line);
       display: flex;
       align-items: center;
       gap: 8px;
     }
     .prompt {
-      color: #4ec9b0;
-      font-weight: bold;
+      color: var(--accent);
+      font-weight: 600;
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     }
     #command-input {
       flex: 1;
       background: transparent;
       border: none;
-      color: #d4d4d4;
-      font-family: inherit;
-      font-size: 14px;
+      color: var(--ink);
+      font-size: 13px;
       outline: none;
       resize: none;
       min-height: 24px;
+      line-height: 1.7;
     }
     #command-input::placeholder {
-      color: #6a6a6a;
+      color: var(--faint);
     }
     .help-panel {
-      background: #252526;
-      padding: 12px 16px;
-      border-bottom: 1px solid #3c3c3c;
+      padding: 8px 20px;
+      border-bottom: 1px solid var(--line);
       font-size: 12px;
-      color: #6a6a6a;
+      color: var(--muted);
     }
     .help-panel kbd {
-      background: #3c3c3c;
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: var(--kbd-bg);
       padding: 2px 6px;
-      border-radius: 3px;
-      color: #d4d4d4;
+      border-radius: 4px;
+      color: var(--kbd-ink);
+      font-size: 11px;
+    }
+    .help-panel a {
+      text-decoration: none;
+    }
+    .help-panel a:hover {
+      text-decoration: underline;
     }
   </style>
   <script src="/sw.js"></script>
 </head>
 <body>
   <div class="header">
-    <h1>🐞 Ladybug Shell</h1>
+    <a class="brand" href="https://ladybugdb.com" title="ladybugdb.com">
+      <svg width="24" height="24" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <ellipse cx="100" cy="110" rx="60" ry="70" fill="#b91c1c"/>
+        <circle cx="100" cy="50" r="25" fill="#1c1917"/>
+        <circle cx="70" cy="80" r="10" fill="#1c1917"/>
+        <circle cx="65" cy="110" r="12" fill="#1c1917"/>
+        <circle cx="70" cy="145" r="10" fill="#1c1917"/>
+        <circle cx="130" cy="80" r="10" fill="#1c1917"/>
+        <circle cx="135" cy="110" r="12" fill="#1c1917"/>
+        <circle cx="130" cy="145" r="10" fill="#1c1917"/>
+      </svg>
+      <span class="brand-name">Ladybug Shell</span>
+    </a>
     <span id="status" class="status loading">Loading WASM...</span>
+    <span class="header-spacer"></span>
+    <a class="header-link" href="https://docs.ladybugdb.com/cypher/" title="Cypher query language reference">Cypher syntax</a>
     <button id="open-url-button" class="toolbar-button" type="button" title="Open a .cypher script or .lbdb database">
       Open URL
     </button>
     <button id="reset-db-button" class="destructive-button" type="button" title="Deletes all persistent OPFS database data for this shell and recreates it">
       Delete Database
     </button>
-    <span class="header-spacer"></span>
     <span id="wasm-core-version" class="package-version"></span>
+    <button id="themeToggle" class="icon-button" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">◐</button>
   </div>
 
   <div class="help-panel">
-    Press <kbd>Enter</kbd> to execute • Type <kbd>help</kbd> for commands • Use <kbd>↑</kbd><kbd>↓</kbd> for history
+    Press <kbd>Enter</kbd> to execute • Type <kbd>help</kbd> for commands • Use <kbd>↑</kbd><kbd>↓</kbd> for history • <a href="https://docs.ladybugdb.com/cypher/">Cypher syntax →</a>
   </div>
 
   <div class="terminal" id="terminal"></div>
 
   <div class="input-area">
-    <span class="prompt">lbug></span>
+    <span class="prompt">lbug&gt;</span>
     <textarea id="command-input" placeholder="Enter Cypher query or command..." autocomplete="off" autofocus rows="1"></textarea>
   </div>
 
@@ -272,6 +402,12 @@
     </form>
   </dialog>
 
+  <script>
+    document.getElementById('themeToggle').addEventListener('click', function () {
+      var dark = document.documentElement.classList.toggle('dark');
+      try { localStorage.setItem('ladybug-shell-theme', dark ? 'dark' : 'light'); } catch (e) { /* ignore */ }
+    });
+  </script>
   <script type="module" src="/main.js"></script>
 </body>
 </html>
